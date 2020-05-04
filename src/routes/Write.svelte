@@ -4,14 +4,12 @@
   import { scenes, chapters, state, cards, settings } from "../stores";
   import { push, location } from "svelte-spa-router";
   import { _ } from "svelte-i18n";
-  import Paragraph, { QuoteTool } from "./Write/paragraph";
 
   import Overview from "./Write/Overview.svelte";
-  import EditorJS from "@editorjs/editorjs";
-  import Header from "@editorjs/header";
-  import Quote from "@editorjs/quote";
   import Toast from "../shared/Toast.svelte";
   import Placeholder from "../shared/Placeholder.svelte";
+
+  import OmniaEditor from "omnia-editor";
 
   export let params = {};
   let currentScene;
@@ -66,50 +64,12 @@
         editor.destroy();
       }
       editorChangeHappened = false;
-      editor = new EditorJS({
-        holder: "codex-editor",
-        placeholder: $_("write.editor.placeholder"),
-        data: currentScene.content,
-        onChange: () => {
-          clearTimeout(autosave);
-          editorChangeHappened = true;
-          countWordsAndChars();
-          if ($settings.autosave) {
-            autosave = setTimeout(() => {
-              save(params.sceneId);
-            }, 10000);
-          }
-        },
-        onReady: () => {
-          countWordsAndChars();
-        },
-        tools: {
-          quote: {
-            class: QuoteTool
-          },
-          paragraph: {
-            class: Paragraph,
-            inlineToolbar: ["bold", "italic", "quote"],
-            config: {
-              project: $state.currentProject,
-              cards: $cards.filter(card => {
-                return (
-                  card.project == $state.currentProject &&
-                  card.showTooltip == true
-                );
-              })
-            }
-          }
-        },
-        logLevel: "ERROR"
-      });
-      editor.tools;
       lastScene = params.sceneId;
     }
   }
 
   function save(param) {
-    editor
+    /*editor
       .save()
       .then(outputData => {
         clearTimeout(autosave);
@@ -120,7 +80,7 @@
       })
       .catch(error => {
         console.error("Saving failed: ", error);
-      });
+      });*/
   }
 
   function shortcutListener(evt) {
@@ -181,6 +141,18 @@
   function redo() {
     document.execCommand("redo", false, null);
   }
+
+  const onChange = () => {
+    console.log("test");
+    clearTimeout(autosave);
+    editorChangeHappened = true;
+    countWordsAndChars();
+    if ($settings.autosave) {
+      autosave = setTimeout(() => {
+        save(params.sceneId);
+      }, 10000);
+    }
+  };
 </script>
 
 <style type="text/css">
@@ -242,7 +214,7 @@
       </div>
       <div class="editpane">
         <h1 contenteditable="true">{currentScene.title}</h1>
-        <div id="codex-editor" />
+        <OmniaEditor content={currentScene.content} on:change={onChange} />
       </div>
     {:else}
       <Overview />

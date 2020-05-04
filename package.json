@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "node-fetch": "^2.6.0",
+    "omnia-editor": "github:torstendittmann/omnia-editor",
     "semver": "^7.3.2"
   },
   "devDependencies": {
